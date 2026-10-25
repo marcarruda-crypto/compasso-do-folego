@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Compasso do Fôlego</title>
+<meta name="description" content="Guia visual e sonoro de técnicas de respiração.">
+<meta name="theme-color" content="#E8EDE9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D1412" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fôlego">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>[hidden]:not([hidden=until-found i]){display:none!important} img{max-width:100%}</style>
+<style>
+/* Layout: instrumento de uma tela — coluna de vidro graduada (como um incentivador respiratório) ao lado do mostrador da fase; ajustes empilhados abaixo como folha de controle */
+:root{
+  --bg:#E8EDE9; --surface:#F5F8F5; --sunk:#DAE2DD; --ink:#15221E; --muted:#56665F; --line:#C3CEC8;
+  --inhale:#147386; --hold:#9A600D; --exhale:#4A4EB3; --rest:#66756F; --warn:#A23A27; --warn-bg:#F5E1DA;
+  --phase:var(--rest);
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --ball:52px; --pad:6px; --tube-h:clamp(250px,50vh,430px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1412; --surface:#141E1B; --sunk:#09100E; --ink:#E0E9E5; --muted:#8C9D96; --line:#26342F;
+    --inhale:#56C2D2; --hold:#E2AD55; --exhale:#A2A6F4; --rest:#8C9D96; --warn:#EF8A71; --warn-bg:#36201A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1412; --surface:#141E1B; --sunk:#09100E; --ink:#E0E9E5; --muted:#8C9D96; --line:#26342F;
+  --inhale:#56C2D2; --hold:#E2AD55; --exhale:#A2A6F4; --rest:#8C9D96; --warn:#EF8A71; --warn-bg:#36201A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;
+}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--inhale); outline-offset:2px}
+.app{max-width:1100px; margin:0 auto; display:grid; gap:28px}
+@media (min-width:900px){
+  .app{grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:44px; align-items:start}
+  .left{position:sticky; top:calc(env(safe-area-inset-top,0px) + 12px)}
+}
+.left{display:grid; gap:14px; min-width:0}
+.top{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.brand{margin:0; font-family:var(--display); font-weight:700; font-size:22px; letter-spacing:-.015em; line-height:1.1}
+.tech-btn{font:500 14px var(--body); color:var(--ink); background:transparent; border:1px solid var(--line); border-radius:999px; padding:7px 14px; cursor:pointer}
+
+/* Palco */
+.stage{background:var(--surface); border:1px solid var(--line); border-radius:24px; padding:18px; display:grid; grid-template-columns:auto minmax(0,1fr); gap:16px; align-items:stretch}
+.tube-wrap{display:flex; gap:6px; align-items:stretch}
+.scale{position:relative; width:42px; height:var(--tube-h)}
+.tick{position:absolute; right:0; width:8px; height:1.5px; background:var(--line); transform:translateY(-50%)}
+.tick.long{width:14px; background:var(--muted)}
+.tick span{position:absolute; right:18px; top:50%; transform:translateY(-50%); font:500 9.5px var(--mono); color:var(--muted); letter-spacing:.04em; white-space:nowrap}
+.tube{position:relative; width:80px; height:var(--tube-h); border-radius:999px; background:var(--sunk); border:1.5px solid var(--line); overflow:hidden}
+.tube::after{content:""; position:absolute; left:11px; top:22px; bottom:22px; width:5px; border-radius:4px; background:color-mix(in srgb,var(--surface) 50%,transparent); pointer-events:none}
+.fill{position:absolute; inset:0; transform-origin:50% 100%; transform:scaleY(.1); background:linear-gradient(to top,color-mix(in srgb,var(--phase) 32%,transparent),color-mix(in srgb,var(--phase) 8%,transparent))}
+.ball{position:absolute; top:0; left:50%; width:var(--ball); height:var(--ball); border-radius:50%; transform:translate(-50%,0); will-change:transform;
+  background:radial-gradient(circle at 34% 30%,color-mix(in srgb,var(--phase) 45%,var(--surface)) 0%,var(--phase) 62%);
+  box-shadow:0 6px 18px color-mix(in srgb,var(--phase) 40%,transparent)}
+.ring{position:absolute; left:-8px; top:-8px; width:68px; height:68px; transform:rotate(-90deg); overflow:visible}
+.ring circle{fill:none; stroke-width:2.5}
+.ring-track{stroke:color-mix(in srgb,var(--phase) 18%,transparent)}
+.ring-bar{stroke:var(--phase); stroke-linecap:round; stroke-dasharray:194.78; stroke-dashoffset:194.78}
+.readout{display:flex; flex-direction:column; justify-content:center; gap:8px; min-width:0}
+.cur{margin:0; font:500 11.5px var(--mono); color:var(--muted); letter-spacing:.06em; text-transform:uppercase; overflow-wrap:anywhere}
+.phase{margin:0; font-family:var(--display); font-weight:700; font-size:clamp(28px,8vw,44px); line-height:1.02; letter-spacing:-.02em; color:var(--phase); text-wrap:balance; overflow-wrap:anywhere}
+.hint{margin:0; color:var(--muted); font-size:15px; line-height:1.35; min-height:2.7em}
+.count{margin:0; font-family:var(--mono); font-weight:500; font-size:clamp(72px,24vw,128px); line-height:.9; font-variant-numeric:tabular-nums; letter-spacing:-.04em; white-space:nowrap}
+.count.small{font-size:clamp(26px,8vw,40px); letter-spacing:0; line-height:1.1; white-space:normal}
+.count small{font-size:.34em; color:var(--muted); letter-spacing:0; margin-left:.08em}
+.chips{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px}
+.chips li{font:500 12px var(--mono); padding:4px 9px; border-radius:999px; border:1px solid var(--line); color:var(--muted)}
+.chips li.on{background:var(--phase); border-color:var(--phase); color:var(--bg)}
+
+/* Controles */
+.controls{display:flex; gap:10px}
+.btn{font:600 16px var(--body); border-radius:16px; min-height:54px; padding:0 18px; cursor:pointer; border:1.5px solid var(--line); background:transparent; color:var(--ink)}
+.btn.primary{flex:1; background:var(--ink); color:var(--bg); border-color:var(--ink); font-family:var(--display); font-size:19px; font-weight:700}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+.btn.skip{width:100%; background:var(--hold); color:var(--bg); border-color:var(--hold)}
+.stats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:0}
+.stats div{min-width:0}
+.stats dt{font:600 10.5px var(--body); text-transform:uppercase; letter-spacing:.09em; color:var(--muted)}
+.stats dd{margin:2px 0 0; font:500 17px var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.risk{background:var(--warn-bg); border:1px solid color-mix(in srgb,var(--warn) 45%,transparent); border-radius:14px; padding:12px 14px; display:grid; gap:8px; font-size:14px; line-height:1.45}
+.risk p{margin:0}
+.risk strong{color:var(--warn)}
+.risk label{display:flex; gap:10px; align-items:flex-start; cursor:pointer; font-weight:500}
+.risk input{width:20px; height:20px; accent-color:var(--warn); flex:none; margin:1px 0 0}
+
+/* Folha de ajustes */
+.right{display:grid; min-width:0}
+.panel{border-top:1px solid var(--line); padding-block:22px; display:grid; gap:14px; min-width:0}
+.panel:first-child{border-top:0; padding-top:2px}
+.panel h2{margin:0; font-family:var(--display); font-weight:700; font-size:21px; letter-spacing:-.01em; line-height:1.2}
+.lede{margin:-6px 0 0; color:var(--muted); font-size:14px; max-width:60ch}
+.filters{display:flex; gap:6px; flex-wrap:wrap}
+.filter{font:500 13.5px var(--body); padding:7px 13px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink); cursor:pointer}
+.filter[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.list{display:grid; gap:8px}
+.tech{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 12px; text-align:left; width:100%; padding:12px 14px; border-radius:14px; border:1px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer}
+.tech[aria-pressed="true"]{border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink)}
+.t-name{font-family:var(--display); font-weight:700; font-size:17px; line-height:1.25; min-width:0}
+.t-pat{font:500 13px var(--mono); color:var(--muted); align-self:center; text-align:right; white-space:nowrap}
+.t-sub{grid-column:1/-1; font-size:14px; color:var(--muted); line-height:1.4}
+.t-meta{grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+.tag{font:500 11.5px var(--body); padding:2px 8px; border-radius:6px; background:var(--sunk); color:var(--muted)}
+.tag.risk-tag{color:var(--warn); background:var(--warn-bg); font-weight:600}
+.ev{font:600 11.5px var(--body); padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:5px}
+.ev::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor}
+.ev-a{color:var(--inhale); background:color-mix(in srgb,var(--inhale) 13%,transparent)}
+.ev-b{color:var(--hold); background:color-mix(in srgb,var(--hold) 13%,transparent)}
+.ev-c{color:var(--muted); background:var(--sunk)}
+.rows{display:grid; gap:10px}
+.row{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px}
+.lab{font-weight:500; min-width:0}
+.unit{display:block; font-size:12.5px; color:var(--muted); font-weight:400}
+.dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; background:var(--c); vertical-align:1px}
+.stepper{display:flex; align-items:center; gap:6px}
+.stepper button{width:44px; height:44px; border-radius:12px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font:500 22px var(--mono); line-height:1; cursor:pointer}
+.stepper button:disabled{opacity:.35; cursor:not-allowed}
+.stepper output{min-width:56px; text-align:center; font:500 19px var(--mono); font-variant-numeric:tabular-nums}
+.sum{margin:0; font:500 13px var(--mono); color:var(--muted)}
+.linkbtn{justify-self:start; background:none; border:0; padding:0; color:var(--inhale); font:600 14px var(--body); cursor:pointer; text-decoration:underline; text-underline-offset:3px}
+.seg{display:inline-flex; flex-wrap:wrap; justify-self:start; border:1px solid var(--line); border-radius:12px; padding:3px; gap:3px; background:var(--surface); position:relative}
+.seg input{position:absolute; opacity:0; width:1px; height:1px; pointer-events:none}
+.seg label{padding:8px 14px; border-radius:9px; cursor:pointer; font-weight:500; font-size:14px}
+.seg input:checked + label{background:var(--ink); color:var(--bg)}
+.seg input:focus-visible + label{outline:2px solid var(--inhale); outline-offset:2px}
+.sw{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; cursor:pointer; font-weight:500}
+.sw input{appearance:none; -webkit-appearance:none; width:48px; height:28px; border-radius:999px; background:var(--sunk); border:1px solid var(--line); position:relative; cursor:pointer; margin:0; transition:background .2s}
+.sw input::after{content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:var(--muted); transition:transform .2s,background .2s}
+.sw input:checked{background:var(--inhale); border-color:var(--inhale)}
+.sw input:checked::after{transform:translateX(20px); background:var(--bg)}
+.vol{display:grid; gap:4px}
+.vol label{font-weight:500}
+input[type="range"]{width:100%; accent-color:var(--inhale)}
+.small-btn{height:40px; padding:0 14px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--ink); font:600 13.5px var(--body); cursor:pointer; justify-self:start}
+.small-btn.danger{color:var(--warn); border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+.save{display:flex; gap:8px; flex-wrap:wrap}
+.save input{flex:1 1 180px; min-width:0; height:48px; border-radius:12px; border:1px solid var(--line); background:var(--surface); color:var(--ink); padding:0 12px; font:inherit}
+.save .btn{min-height:48px}
+.models{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.models li{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; align-items:center; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface)}
+.m-name{font-weight:600; overflow-wrap:anywhere}
+.m-pat{display:block; font:500 12.5px var(--mono); color:var(--muted)}
+.m-act{display:flex; gap:6px}
+.note{margin:0; color:var(--muted); font-size:13px}
+.about-body{display:grid; gap:18px}
+.about-head{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+.blk{display:grid; gap:8px}
+.blk h3{margin:0; font:600 11.5px var(--body); text-transform:uppercase; letter-spacing:.09em; color:var(--muted)}
+.blk p,.blk ol,.blk ul{margin:0; max-width:65ch}
+.blk ol,.blk ul{padding-left:1.25em; display:grid; gap:6px}
+.blk.warn li::marker{color:var(--warn)}
+.blk a{color:var(--inhale); text-underline-offset:3px; overflow-wrap:anywhere}
+.foot{margin:0; border-top:1px solid var(--line); padding-top:18px; color:var(--muted); font-size:13.5px; max-width:65ch}
+@media (max-width:380px){
+  .stage{padding:14px; gap:12px}
+  .scale{width:34px}
+  .tick span{font-size:8.5px; right:16px}
+  .tube{width:72px}
+  .stats dd{font-size:15px}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+.install{display:none; align-items:center; gap:12px; justify-content:space-between; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:10px 12px; font-size:14px}
+.install.show{display:flex}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; padding-top:max(10px,env(safe-area-inset-top,0px)); padding-bottom:max(36px,env(safe-area-inset-bottom,0px))}
+@media (display-mode: standalone){ body{overscroll-behavior-y:none} }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="left" id="left">
+    <header class="top">
+      <h1 class="brand">Compasso do Fôlego</h1>
+      <button class="tech-btn" id="techBtn" type="button">Trocar técnica</button>
+    </header>
+
+    <div class="install" id="install"><span>Instale o Compasso na tela inicial para usar sem navegador e sem internet.</span><button class="small-btn" id="installBtn" type="button">Instalar</button></div>
+
+    <section class="stage" id="stage" aria-label="Guia visual da respiração">
+      <div class="tube-wrap" aria-hidden="true">
+        <div class="scale" id="scale"></div>
+        <div class="tube" id="tube">
+          <div class="fill" id="fill"></div>
+          <div class="ball" id="ball">
+            <svg class="ring" viewBox="0 0 68 68" aria-hidden="true">
+              <circle class="ring-track" cx="34" cy="34" r="31"></circle>
+              <circle class="ring-bar" id="ringBar" cx="34" cy="34" r="31"></circle>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="readout">
+        <p class="cur" id="cur"></p>
+        <p class="phase" id="phase">Pronto</p>
+        <p class="sr" id="live" aria-live="polite"></p>
+        <p class="hint" id="hint"></p>
+        <p class="count small" id="count"></p>
+        <ol class="chips" id="chips"></ol>
+      </div>
+    </section>
+
+    <div class="risk" id="risk" hidden>
+      <p><strong>Técnica com risco de desmaio.</strong> <span id="riskText"></span></p>
+      <label for="riskAck"><input type="checkbox" id="riskAck"> <span>Li os cuidados. Vou praticar sentado ou deitado, longe da água, e paro se passar mal.</span></label>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="startBtn" type="button">Começar</button>
+      <button class="btn" id="stopBtn" type="button" disabled>Encerrar</button>
+    </div>
+    <button class="btn skip" id="skipBtn" type="button" hidden>Já preciso respirar</button>
+
+    <dl class="stats">
+      <div><dt id="stCycleLab">Ciclo</dt><dd id="stCycle">—</dd></div>
+      <div><dt>Tempo</dt><dd id="stTime">0:00</dd></div>
+      <div><dt>Restante</dt><dd id="stLeft">—</dd></div>
+      <div><dt id="stRateLab">Ritmo</dt><dd id="stRate">—</dd></div>
+    </dl>
+  </div>
+
+  <div class="right">
+    <section class="panel" id="secTec">
+      <h2>Técnica</h2>
+      <p class="lede">Filtre pelo objetivo e toque para usar. Os tempos de cada uma podem ser ajustados logo abaixo.</p>
+      <div class="filters" id="filters"></div>
+      <div class="list" id="list"></div>
+    </section>
+
+    <section class="panel" id="secTempos">
+      <h2>Tempos</h2>
+      <p class="lede" id="temposLede"></p>
+      <div class="rows" id="rows"></div>
+      <p class="sum" id="sum"></p>
+      <button class="linkbtn" id="resetParams" type="button">Voltar aos tempos originais</button>
+    </section>
+
+    <section class="panel" id="secSessao">
+      <h2>Sessão</h2>
+      <div class="seg" role="radiogroup" aria-label="Como medir a sessão">
+        <input type="radio" name="modo" id="modoMin" value="min"><label for="modoMin">Minutos</label>
+        <input type="radio" name="modo" id="modoCic" value="ciclos"><label for="modoCic" id="modoCicLab">Ciclos</label>
+        <input type="radio" name="modo" id="modoLivre" value="livre"><label for="modoLivre">Livre</label>
+      </div>
+      <div class="row" id="sessRow">
+        <span class="lab" id="sessLab">Duração</span>
+        <div class="stepper">
+          <button type="button" data-sess="-1" aria-label="Diminuir">−</button>
+          <output id="sessVal" aria-live="polite">5</output>
+          <button type="button" data-sess="1" aria-label="Aumentar">+</button>
+        </div>
+      </div>
+      <p class="sum" id="sessSum"></p>
+    </section>
+
+    <section class="panel" id="secSom">
+      <h2>Som e guia</h2>
+      <p class="lede">O som da respiração sobe e desce junto com a bolinha. Nas pausas fica quase em silêncio.</p>
+      <div class="seg" role="radiogroup" aria-label="Som da respiração">
+        <input type="radio" name="som" id="somTom" value="tom"><label for="somTom">Tom suave</label>
+        <input type="radio" name="som" id="somSopro" value="sopro"><label for="somSopro">Sopro</label>
+        <input type="radio" name="som" id="somNada" value="nenhum"><label for="somNada">Sem som</label>
+      </div>
+      <label class="sw" for="swSino"><span>Sino nas trocas de fase</span><input type="checkbox" id="swSino"></label>
+      <label class="sw" for="swVoz"><span>Voz guia<span class="unit">fala “inspire”, “segure”, “expire” com a voz do celular</span></span><input type="checkbox" id="swVoz"></label>
+      <label class="sw" for="swVib"><span>Vibração nas trocas<span class="unit">funciona no Chrome do Android</span></span><input type="checkbox" id="swVib"></label>
+      <div class="vol"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" step="5"></div>
+      <button class="small-btn" id="testBtn" type="button">Testar som</button>
+      <p class="note">No iPhone, a chave de silencioso pode deixar o som mudo.</p>
+    </section>
+
+    <section class="panel" id="secModelos">
+      <h2>Meus modelos</h2>
+      <p class="lede">Guarde a técnica com os seus tempos e a duração da sessão.</p>
+      <div class="save">
+        <input id="modelName" type="text" maxlength="40" placeholder="Nome, ex.: 4·4·8 antes de dormir" aria-label="Nome do modelo">
+        <button class="btn" id="saveModel" type="button">Salvar</button>
+      </div>
+      <p class="sum" id="saveMsg" role="status"></p>
+      <ul class="models" id="models"></ul>
+      <p class="note" id="modelsEmpty">Nenhum modelo salvo ainda. Ajuste uma técnica e salve aqui.</p>
+      <p class="note">Os modelos ficam guardados neste celular, no app instalado (ou no navegador em que você o abriu).</p>
+    </section>
+
+    <section class="panel" id="secSobre">
+      <h2 id="sobreTitle">Sobre a técnica</h2>
+      <div class="about-body" id="sobre"></div>
+    </section>
+
+    <p class="foot">Pare qualquer técnica se sentir tontura forte, dor no peito, palpitação ou falta de ar. Este guia marca o ritmo; não substitui orientação médica ou psicológica. VFC é a variabilidade da frequência cardíaca: em repouso, valores maiores costumam indicar o corpo no modo de descanso.</p>
+  </div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const KEY='compasso-folego-v1';
+const BALL=52, PAD=6, RING=194.78;
+
+const OBJ={ansiedade:'Ansiedade',sono:'Sono',foco:'Foco',energia:'Energia',equilibrio:'Equilíbrio'};
+const EVID={ensaio:['Ensaio randomizado','a'],varios:['Vários estudos','a'],pequeno:['Estudos pequenos','b'],misto:['Resultados mistos','b'],sem:['Sem estudo próprio','c']};
+const PARAM={
+  in:{l:'Inspiração',min:1,max:15,step:.5,c:'inhale'},
+  in2:{l:'Complemento',u:'2ª inspiração, em segundos',min:.5,max:3,step:.5,c:'inhale'},
+  hold:{l:'Pausa cheia',u:'ar dentro, em segundos',min:0,max:30,step:.5,c:'hold'},
+  out:{l:'Expiração',min:1,max:20,step:.5,c:'exhale'},
+  hold2:{l:'Pausa vazia',u:'sem ar, em segundos',min:0,max:20,step:.5,c:'hold'},
+  bombadas:{l:'Bombadas por rodada',u:'quantidade',min:10,max:60,step:5,c:'exhale'},
+  ritmoK:{l:'Duração de cada bombada',min:.5,max:2,step:.25,c:'exhale'},
+  descanso:{l:'Descanso entre rodadas',min:10,max:90,step:5,c:'rest'},
+  resp:{l:'Respirações por rodada',u:'quantidade',min:10,max:40,step:5,c:'inhale'},
+  ritmoH:{l:'Duração de cada respiração',u:'enche + solta, em segundos',min:2,max:5,step:.5,c:'inhale'},
+  retencao:{l:'Retenção sem ar',u:'máximo, em segundos; dá para parar antes',min:10,max:90,step:5,c:'hold'},
+  recup:{l:'Retenção de recuperação',u:'ar dentro, em segundos',min:5,max:20,step:1,c:'hold'}
+};
+const KEYS={padrao:['in','hold','out','hold2'],suspiro:['in','in2','out','hold2'],narinas:['in','hold','out','hold2'],kapala:['bombadas','ritmoK','descanso'],hiper:['resp','ritmoH','retencao','recup']};
+const START={padrao:0,suspiro:0,narinas:0,kapala:.62,hiper:.3};
+const LBL={in:'Inspire',in2:'Mais um pouco',hold:'Segure',out:'Expire',hold2:'Segure vazio',rest:'Respire normal',prep:'Prepare-se'};
+const COLOR={in:'inhale',in2:'inhale',hold:'hold',out:'exhale',hold2:'hold',rest:'rest',prep:'rest'};
+const BELL={in:784,in2:880,hold:659,out:523,hold2:587,rest:440};
+
+const SRC={
+  stanford:['Estudo de Stanford: suspiro cíclico, quadrada e hiperventilação × meditação (Cell Reports Medicine, 2023)','https://pmc.ncbi.nlm.nih.gov/articles/PMC9873947/'],
+  meta:['Meta-análise de ensaios sobre respiração, estresse e ansiedade (Scientific Reports, 2023)','https://pmc.ncbi.nlm.nih.gov/articles/PMC9828383/'],
+  negoro:['Efeitos agudos do 4-4-8 na rigidez arterial (Cardiology Journal, 2024)','https://pmc.ncbi.nlm.nih.gov/articles/PMC11229811/'],
+  vierra:['Respiração 4-7-8 e variabilidade cardíaca em jovens (2022)','https://pmc.ncbi.nlm.nih.gov/articles/PMC9277512/'],
+  marchant:['Quadrada × 4-7-8 × 6 por minuto (Applied Psychophysiology and Biofeedback, 2025)','https://pubmed.ncbi.nlm.nih.gov/39864026/'],
+  ressonancia:['Respiração na frequência de ressonância: VFC, pressão e humor (Frontiers in Public Health, 2017)','https://pmc.ncbi.nlm.nih.gov/articles/PMC5575449/'],
+  bae:['Expiração mais longa aumenta a VFC de alta frequência (Psychophysiology, 2021)','https://pubmed.ncbi.nlm.nih.gov/34289128/'],
+  replica:['Expiração mais longa aumenta a VFC na respiração lenta? (Applied Psychophysiology and Biofeedback, 2024)','https://link.springer.com/article/10.1007/s10484-024-09637-2'],
+  narinas:['Narinas alternadas e ansiedade ao falar em público (BioMed Research International, 2017)','https://pmc.ncbi.nlm.nih.gov/articles/PMC5660749/'],
+  narinas2:['Narinas alternadas reduziram a pressão e melhoraram um teste de vigilância (Med Sci Monit Basic Res, 2017)','https://basic.medscimonit.com/abstract/full/idArt/906502'],
+  bhr1:['Zumbido (bhramari): duração do ciclo e VFC (International Journal of Yoga, 2023)','https://doaj.org/article/62fb07ff170647cf8ff0ab82c18af84f'],
+  bhr2:['Respiração lenta × zumbido: VFC e humor (estudo piloto)','https://qigonginstitute.org/abstract-print/19834'],
+  bhr3:['Zumbido em hipertensos: ensaio randomizado (Explore, 2021)','https://www.qigonginstitute.org/abstract-print/15821'],
+  kap1:['Pranayama rápido × lento e funções cognitivas (J Clin Diagn Res, 2014)','https://pmc.ncbi.nlm.nih.gov/articles/PMC3939514/'],
+  kap2:['Revisão sistemática sobre kapalabhati (2025)','https://journals.sagepub.com/doi/10.1177/09727531251340154'],
+  whof:['Especialistas sobre os riscos do método Wim Hof (Live Science)','https://www.livescience.com/health/gambling-with-your-life-experts-weigh-in-on-dangers-of-the-wim-hof-method']
+};
+const RISK_CARE='Sem liberação médica, não pratique se tiver doença do coração ou arritmia, pressão alta, epilepsia, histórico de desmaio, crises de pânico, doença respiratória ou gravidez.';
+
+const TECH=[
+ {id:'448',nome:'4·4·8',sub:'Inspira 4, segura 4, expira 8',tipo:'padrao',obj:['ansiedade','sono'],ev:'pequeno',
+  p:{in:4,hold:4,out:8,hold2:0},s:{modo:'min',v:5},
+  como:['Sente-se ou deite-se com as costas apoiadas.','Inspire pelo nariz enquanto a bolinha sobe.','Segure o ar com a bolinha parada no alto, sem travar a garganta.','Solte o ar devagar enquanto a bolinha desce.'],
+  pesquisa:'Padrão atribuído ao médico Hideyuki Negoro. Num estudo de 2024 com 15 rapazes saudáveis de 20 anos, a rigidez das artérias e a pressão sistólica caíram depois de uma sessão de 4·4·8. A expiração com o dobro do tempo da inspiração é o traço que ele divide com as outras técnicas calmantes.',
+  cuidados:['Se os 8 s de expiração ficarem difíceis, comece com 3·3·6 e aumente aos poucos.'],
+  fontes:['negoro','meta']},
+ {id:'suspiro',nome:'Suspiro cíclico',sub:'Duas inspirações pelo nariz e uma expiração longa pela boca',tipo:'suspiro',obj:['ansiedade'],ev:'ensaio',
+  p:{in:2,in2:1,out:6,hold2:0},s:{modo:'min',v:5},
+  como:['Inspire fundo pelo nariz.','Sem soltar, puxe mais um pouco de ar, também pelo nariz, até encher o pulmão.','Solte todo o ar pela boca, devagar, até esvaziar.','Para alívio rápido, 2 ou 3 ciclos já ajudam. Como prática diária, 5 minutos.'],
+  pesquisa:'Num ensaio randomizado da Universidade Stanford (2023), 5 minutos por dia durante um mês melhoraram o humor e reduziram a frequência respiratória mais do que a meditação mindfulness. Das três técnicas testadas, foi a de melhor resultado.',
+  cuidados:['A segunda inspiração é curta. Não force o peito.'],
+  fontes:['stanford']},
+ {id:'478',nome:'4·7·8',sub:'Inspira 4, segura 7, expira 8 pela boca',tipo:'padrao',obj:['sono','ansiedade'],ev:'pequeno',
+  hints:{in:'pelo nariz, em silêncio',out:'pela boca, com um sopro leve'},
+  p:{in:4,hold:7,out:8,hold2:0},s:{modo:'ciclos',v:4},
+  como:['Encoste a ponta da língua atrás dos dentes de cima.','Inspire pelo nariz, em silêncio.','Segure o ar.','Solte pela boca com um sopro leve.','O costume é fazer 4 ciclos. Com prática, até 8.'],
+  pesquisa:'Divulgada pelo médico Andrew Weil, a partir do pranayama da ioga. Num estudo de 2022, uma sessão melhorou a variabilidade da frequência cardíaca (VFC) em jovens. Num estudo de 2025, porém, respirar a 6 por minuto elevou a VFC mais do que o 4·7·8 e a quadrada.',
+  cuidados:['A pausa de 7 s pode dar tontura no começo. Reduza os três tempos na mesma proporção (por exemplo, 2·3,5·4) e aumente com o hábito.'],
+  fontes:['vierra','marchant']},
+ {id:'coerente',nome:'Coerente · 5,5/min',sub:'Cerca de 5,5 respirações por minuto (5,5 s para cada lado), sem pausas',tipo:'padrao',obj:['equilibrio','ansiedade'],ev:'varios',
+  hints:{in:'pelo nariz, suave',out:'pelo nariz, suave'},
+  p:{in:5.5,hold:0,out:5.5,hold2:0},s:{modo:'min',v:10},
+  como:['Respire pelo nariz, suave, sem encher demais.','Inspire enquanto a bolinha sobe e solte enquanto ela desce, sem pausas.','Se sentir formigamento ou tontura, respire mais leve, não mais fundo.','Teste ritmos entre 4,5 e 7 respirações por minuto até achar o mais confortável.'],
+  pesquisa:'É a base do biofeedback cardíaco. Perto de 6 respirações por minuto, respiração e coração entram em ressonância e a VFC chega ao máximo. Cada pessoa tem seu ponto, em geral entre 4,5 e 7 por minuto; o mais comum é 5,5. Num estudo de 2025, esse ritmo elevou a VFC mais do que o 4·7·8 e a quadrada, mas alguns participantes acabaram respirando demais.',
+  cuidados:['Respirar fundo demais nesse ritmo pode dar tontura. O volume de ar deve ser confortável.'],
+  fontes:['ressonancia','marchant']},
+ {id:'quadrada',nome:'Quadrada',sub:'Quatro tempos iguais, com pausa cheia e pausa vazia',tipo:'padrao',obj:['foco','ansiedade'],ev:'ensaio',
+  p:{in:4,hold:4,out:4,hold2:4},s:{modo:'min',v:5},
+  como:['Inspire pelo nariz.','Segure com o pulmão cheio.','Solte o ar.','Fique sem ar, relaxado, antes de inspirar de novo.'],
+  pesquisa:'Popular entre militares e atletas para manter a calma sob pressão. Foi um dos grupos do estudo de Stanford (2023), em que o suspiro cíclico teve o melhor resultado. Num estudo de 2025, aumentou a VFC menos que a respiração a 6 por minuto.',
+  cuidados:['Se a pausa vazia gerar aflição, diminua para 2 s ou use a triangular.'],
+  fontes:['stanford','marchant']},
+ {id:'expira',nome:'Expiração longa 4·6',sub:'Solta o ar por mais tempo do que puxa',tipo:'padrao',obj:['ansiedade','sono'],ev:'misto',
+  hints:{out:'devagar, com os lábios entreabertos'},
+  p:{in:4,hold:0,out:6,hold2:0},s:{modo:'min',v:5},
+  como:['Inspire pelo nariz.','Solte o ar devagar, pelo nariz ou com os lábios entreabertos, por mais tempo do que inspirou.','Sem pausas. Para mais efeito calmante, vá até 4·8.'],
+  pesquisa:'Num estudo de 2021, alongar a expiração aumentou um marcador do tônus vagal, o freio natural do coração. Uma replicação de 2024 não achou diferença quando a pessoa já respirava a 6 por minuto. A evidência é mista, mas a expiração longa está em quase todas as técnicas calmantes.',
+  cuidados:[],
+  fontes:['bae','replica']},
+ {id:'igual',nome:'Igual 4·4',sub:'Sama vritti: inspiração e expiração do mesmo tamanho',tipo:'padrao',obj:['foco','equilibrio'],ev:'sem',
+  p:{in:4,hold:0,out:4,hold2:0},s:{modo:'min',v:5},
+  como:['Inspire pelo nariz contando junto com a bolinha.','Expire no mesmo tempo, sem pausa.','Mantenha o ar silencioso e a barriga solta.'],
+  pesquisa:'Exercício básico da ioga, sem estudos próprios. Vale a evidência geral: uma meta-análise de 2023 encontrou efeito pequeno a moderado das técnicas respiratórias sobre estresse, ansiedade e depressão. Em 4·4 são 7,5 respirações por minuto, mais lento que o normal em repouso.',
+  cuidados:[],
+  fontes:['meta']},
+ {id:'triangular',nome:'Triangular',sub:'Inspira, segura e solta no mesmo tempo, sem pausa vazia',tipo:'padrao',obj:['foco'],ev:'sem',
+  p:{in:4,hold:4,out:4,hold2:0},s:{modo:'min',v:5},
+  como:['Inspire, segure cheio e solte, todos no mesmo tempo.','Emende a próxima inspiração sem pausa.'],
+  pesquisa:'Variação da quadrada sem a pausa vazia. Não tem estudos próprios; serve para quem acha a pausa vazia desconfortável.',
+  cuidados:[],
+  fontes:['meta']},
+ {id:'narinas',nome:'Narinas alternadas',sub:'Nadi shodhana: entra por um lado, sai pelo outro',tipo:'narinas',obj:['foco','equilibrio'],ev:'pequeno',
+  p:{in:4,hold:2,out:6,hold2:0},s:{modo:'min',v:5},
+  como:['Use o polegar direito para tampar a narina direita e o anelar para tampar a esquerda.','Siga o lado mostrado na tela: inspira pela esquerda e solta pela direita; inspira pela direita e solta pela esquerda. Isso é um ciclo.','Na pausa cheia, tampe as duas narinas.','Mantenha o ar leve, sem barulho.'],
+  pesquisa:'Num estudo piloto randomizado de 2017, 15 minutos antes de falar em público tenderam a reduzir a ansiedade. Em outro estudo de 2017, 18 minutos baixaram a pressão arterial e melhoraram o desempenho num teste de atenção. São estudos pequenos.',
+  cuidados:['Com o nariz entupido, prefira a coerente.'],
+  fontes:['narinas','narinas2']},
+ {id:'bhramari',nome:'Abelha (bhramari)',sub:'Expira de boca fechada, zumbindo “mmmm”',tipo:'padrao',obj:['ansiedade','sono'],ev:'pequeno',
+  hints:{out:'boca fechada, zumbindo “mmmm”',outSpeak:'Zumbindo'},
+  p:{in:4,hold:0,out:9,hold2:0},s:{modo:'min',v:5},
+  como:['Inspire pelo nariz.','Solte o ar de boca fechada fazendo um zumbido grave e contínuo, como uma abelha.','Se quiser, tampe os ouvidos com os polegares para sentir a vibração.','Ciclos de 12 a 14 s (inspiração mais expiração) tiveram o melhor resultado num estudo.'],
+  pesquisa:'Num estudo de 2023 com 118 pessoas, a VFC durante o zumbido foi maior com ciclos de 12 a 14 s do que com ciclos de 8 ou 10 s. Outro estudo pequeno achou efeito na VFC parecido com o da respiração lenta comum. Num ensaio com hipertensos, não baixou a pressão mais do que a respiração lenta.',
+  cuidados:[],
+  fontes:['bhr1','bhr2','bhr3']},
+ {id:'kapala',nome:'Kapalabhati',sub:'Expirações curtas e fortes pelo nariz, para despertar',tipo:'kapala',obj:['energia','foco'],ev:'pequeno',risco:true,
+  p:{bombadas:20,ritmoK:1.5,descanso:30},s:{modo:'ciclos',v:3},
+  como:['Sente-se com a coluna ereta.','Solte o ar pelo nariz com um golpe curto da barriga, que entra.','Deixe a inspiração acontecer sozinha, sem esforço.','No descanso, respire normalmente.','O padrão é o de iniciante: 20 bombadas devagar (1,5 s cada). Com o hábito, aumente a quantidade e acelere aos poucos.'],
+  pesquisa:'Num ensaio de 12 semanas com 84 jovens, tanto a respiração rápida (kapalabhati e bhastrika) quanto a lenta melhoraram atenção e tempo de reação; a rápida teve ganho maior no tempo de reação. Uma revisão de 2025 com quatro ensaios associou a técnica a mais atenção e melhor função pulmonar.',
+  cuidados:[RISK_CARE,'Pare se sentir tontura forte, formigamento, dor no peito ou palpitação.','Nunca na água, dirigindo ou em pé.'],
+  fontes:['kap1','kap2']},
+ {id:'hiper',nome:'Hiperventilação cíclica',sub:'Respirações profundas seguidas de retenção sem ar (estilo Wim Hof)',tipo:'hiper',obj:['energia'],ev:'ensaio',risco:true,
+  p:{resp:30,ritmoH:3,retencao:30,recup:15},s:{modo:'ciclos',v:3},
+  como:['Deite-se ou sente-se em lugar seguro.','Respire fundo no ritmo da bolinha: encha bem e solte sem forçar.','Depois da última, solte todo o ar e fique sem respirar só enquanto for confortável. O relógio conta o tempo que você segurou; toque em “Já preciso respirar” para encerrar a retenção.','Inspire fundo e segure. Isso fecha uma rodada.'],
+  pesquisa:'Popularizada pelo método Wim Hof. Foi o terceiro grupo do estudo de Stanford (2023), em que o suspiro cíclico teve o melhor resultado. Hiperventilar e depois prender o ar já causou desmaios e afogamentos quando feito dentro ou perto da água.',
+  cuidados:['Pode causar desmaio. Pratique só deitado ou sentado, nunca na água, no banho, dirigindo ou em pé.',RISK_CARE,'Formigamento e tontura leve são comuns. Dor no peito ou palpitação: pare na hora.'],
+  fontes:['stanford','whof']},
+ {id:'livre',nome:'Personalizado',sub:'Monte o seu ritmo com os quatro tempos',tipo:'padrao',obj:[],ev:'sem',
+  p:{in:4,hold:0,out:6,hold2:0},s:{modo:'min',v:5},
+  como:['Ajuste os quatro tempos em “Tempos”.','Use zero para tirar uma pausa.','Salve em “Meus modelos” para usar de novo.'],
+  pesquisa:'Regras práticas tiradas das pesquisas: expiração igual ou maior que a inspiração tende a acalmar; entre 4,5 e 7 respirações por minuto a VFC costuma chegar ao máximo; pausas longas exigem treino.',
+  cuidados:[],
+  fontes:['meta','ressonancia','bae']}
+];
+
+/* ---------- Preferências ---------- */
+function load(){let d={}; try{d=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){d={}}
+  return Object.assign({tech:'448',params:{},sessions:{},som:'tom',sino:true,voz:false,vib:true,vol:70,models:[],filtro:'todas',model:null},d);}
+const prefs=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch(e){}}
+const byId=id=>TECH.find(t=>t.id===id);
+if(!byId(prefs.tech)) prefs.tech='448';
+if(!Array.isArray(prefs.models)) prefs.models=[];
+const tech=()=>byId(prefs.tech);
+const ack={};
+
+const round2=v=>parseFloat(v.toFixed(2));
+function clampP(k,v){const d=PARAM[k]; v=Math.min(d.max,Math.max(d.min,v)); return round2(Math.round(v/d.step)*d.step);}
+function params(t=tech()){const b={...t.p}, s=prefs.params[t.id]||{}; KEYS[t.tipo].forEach(k=>{if(typeof s[k]==='number'&&isFinite(s[k])) b[k]=clampP(k,s[k]);}); return b;}
+function sess(t=tech()){const s=Object.assign({},t.s,prefs.sessions[t.id]||{}); if(!['min','ciclos','livre'].includes(s.modo)) s.modo=t.s.modo; if(!(s.v>=1)) s.v=t.s.v; return s;}
+const fmt=n=>Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
+const mmss=s=>{s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isRound=t=>t.tipo==='kapala'||t.tipo==='hiper';
+
+/* ---------- Construção do ciclo ---------- */
+function P(k,d,from,to,o){return Object.assign({k,d,from,to,label:LBL[k],hint:'',chip:-1},o||{});}
+function build(t,p){
+  const h=t.hints||{}, ph=[];
+  if(t.tipo==='padrao'){let c=0;
+    ph.push(P('in',p.in,0,1,{chip:c++,hint:h.in||'pelo nariz',speak:'Inspire'}));
+    if(p.hold>0) ph.push(P('hold',p.hold,1,1,{chip:c++,hint:h.hold||'ar dentro, ombros soltos',speak:'Segure'}));
+    ph.push(P('out',p.out,1,0,{chip:c++,hint:h.out||'solte devagar',speak:h.outSpeak||'Expire'}));
+    if(p.hold2>0) ph.push(P('hold2',p.hold2,0,0,{chip:c++,hint:h.hold2||'sem ar, relaxado',speak:'Segure vazio'}));
+  } else if(t.tipo==='suspiro'){
+    ph.push(P('in',p.in,0,.76,{chip:0,hint:'fundo, pelo nariz',speak:'Inspire'}));
+    ph.push(P('in2',p.in2,.76,1,{chip:1,hint:'complete o ar pelo nariz',speak:'Mais'}));
+    ph.push(P('out',p.out,1,0,{chip:2,label:'Solte',hint:'pela boca, até esvaziar',speak:'Solte devagar'}));
+    if(p.hold2>0) ph.push(P('hold2',p.hold2,0,0,{chip:3,label:'Pausa',hint:'descanse sem ar',speak:'Pausa'}));
+  } else if(t.tipo==='narinas'){
+    [['esquerda','direita'],['direita','esquerda']].forEach(([a,b])=>{let c=0;
+      ph.push(P('in',p.in,0,1,{chip:c++,hint:'pela narina '+a,speak:'Inspire pela '+a}));
+      if(p.hold>0) ph.push(P('hold',p.hold,1,1,{chip:c++,hint:'tampe as duas narinas',speak:'Segure'}));
+      ph.push(P('out',p.out,1,0,{chip:c++,hint:'pela narina '+b,speak:'Expire pela '+b}));
+      if(p.hold2>0) ph.push(P('hold2',p.hold2,0,0,{chip:c++,hint:'sem ar, relaxado',speak:'Segure vazio'}));
+    });
+  } else if(t.tipo==='kapala'){
+    const r=p.ritmoK, n=p.bombadas;
+    for(let i=0;i<n;i++){
+      ph.push(P('out',r*.4,.62,.34,{chip:0,label:'Bombadas',hint:'solte com um golpe pelo nariz',cA:i+1,cN:n,quiet:i>0,tick:true,speak:i===0?'Comece as bombadas':null}));
+      ph.push(P('in',r*.6,.34,.62,{chip:0,label:'Bombadas',hint:'o ar entra sozinho',cA:i+1,cN:n,quiet:true}));
+    }
+    ph.push(P('rest',p.descanso,.62,.5,{chip:1,hint:'descanse, sem controlar o ar',speak:'Respire normalmente'}));
+  } else if(t.tipo==='hiper'){
+    const r=p.ritmoH, n=p.resp;
+    for(let i=0;i<n;i++){
+      ph.push(P('in',r/2,.3,1,{chip:0,label:'Respire fundo',hint:'encha bem',cA:i+1,cN:n,quiet:i>0,speak:i===0?'Respire fundo':null}));
+      ph.push(P('out',r/2,1,.3,{chip:0,label:'Solte',hint:'sem forçar',cA:i+1,cN:n,quiet:true}));
+    }
+    ph.push(P('out',3,.3,0,{chip:1,label:'Solte tudo',hint:'esvazie e fique sem ar',speak:'Solte todo o ar e segure'}));
+    ph.push(P('hold2',p.retencao,0,0,{chip:1,label:'Segure sem ar',hint:'pare antes se precisar respirar',skip:true}));
+    ph.push(P('in',2.5,0,1,{chip:2,label:'Inspire fundo',hint:'encha o pulmão',speak:'Inspire fundo'}));
+    ph.push(P('hold',p.recup,1,1,{chip:2,label:'Segure',hint:'retenção de recuperação',speak:'Segure'}));
+    ph.push(P('out',2.5,1,.3,{chip:2,label:'Solte',hint:'e recomece',speak:'Solte'}));
+  }
+  return ph;
+}
+function chipList(t,p){
+  switch(t.tipo){
+    case 'padrao': case 'narinas':{const a=['Inspira '+fmt(p.in)]; if(p.hold>0)a.push('Segura '+fmt(p.hold)); a.push('Expira '+fmt(p.out)); if(p.hold2>0)a.push('Vazio '+fmt(p.hold2)); return a;}
+    case 'suspiro':{const a=['Inspira '+fmt(p.in),'Completa '+fmt(p.in2),'Solta '+fmt(p.out)]; if(p.hold2>0)a.push('Pausa '+fmt(p.hold2)); return a;}
+    case 'kapala': return [p.bombadas+' bombadas','Descanso '+fmt(p.descanso)+' s'];
+    case 'hiper': return [p.resp+' respirações','Retenção até '+fmt(p.retencao)+' s','Recuperação '+fmt(p.recup)+' s'];
+  }
+  return [];
+}
+function pattern(t,p){
+  switch(t.tipo){
+    case 'padrao': case 'narinas':{let a=[p.in,p.hold,p.out,p.hold2]; if(!p.hold2) a.pop(); if(!p.hold&&a.length===3) a=[p.in,p.out]; return a.map(fmt).join('·');}
+    case 'suspiro': return fmt(p.in)+'+'+fmt(p.in2)+'·'+fmt(p.out)+(p.hold2?'·'+fmt(p.hold2):'');
+    case 'kapala': return p.bombadas+'× · '+fmt(p.descanso)+' s';
+    case 'hiper': return p.resp+'× · '+fmt(p.retencao)+' s · '+fmt(p.recup)+' s';
+  }
+  return '';
+}
+const cycleSec=(t,p)=>build(t,p).reduce((s,x)=>s+x.d,0);
+function rateInfo(t,p){const c=cycleSec(t,p);
+  if(isRound(t)) return {lab:'Rodada',val:mmss(c),txt:'Rodada de '+mmss(c)+' (com a retenção máxima)'};
+  const b=t.tipo==='narinas'?2:1, r=Math.round(60*b/c*10)/10;
+  return {lab:'Ritmo',val:fmt(r)+'/min',txt:'Ciclo de '+fmt(round2(c))+' s · '+fmt(r)+' respirações por minuto'};}
+
+/* ---------- Áudio ---------- */
+let AC=null, master=null, TN=null, NZ=null, voice=null;
+function ensureAudio(){
+  try{
+    if(!AC){const C=window.AudioContext||window.webkitAudioContext; if(!C) return;
+      AC=new C(); master=AC.createGain(); master.gain.value=prefs.vol/100; master.connect(AC.destination);
+      const o1=AC.createOscillator(), o2=AC.createOscillator(), g2=AC.createGain(), g=AC.createGain(), lp=AC.createBiquadFilter();
+      o1.type='sine'; o2.type='sine'; g2.gain.value=.22; g.gain.value=0; lp.type='lowpass'; lp.frequency.value=1400;
+      o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(lp); lp.connect(master); o1.start(); o2.start(); TN={o1,o2,g};
+      const buf=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate), d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+      const ns=AC.createBufferSource(), bp=AC.createBiquadFilter(), ng=AC.createGain();
+      ns.buffer=buf; ns.loop=true; bp.type='bandpass'; bp.Q.value=.9; ng.gain.value=0;
+      ns.connect(bp); bp.connect(ng); ng.connect(master); ns.start(); NZ={bp,g:ng};
+    }
+    if(AC.state==='suspended') AC.resume();
+  }catch(e){AC=null;}
+}
+function breathSound(pos,ph,x){
+  if(!AC||!TN) return; const t=AC.currentTime;
+  const moving=ph.from!==ph.to && ph.k!=='rest';
+  const shape=Math.sqrt(Math.max(0,Math.sin(Math.PI*Math.min(1,Math.max(0,x)))));
+  let tg=0, ng=0;
+  if(prefs.som==='tom') tg = moving ? .05+.11*shape : (ph.k==='hold'||ph.k==='hold2' ? .028 : 0);
+  else if(prefs.som==='sopro') ng = moving ? .32*shape*(ph.k==='out'?.85:1) : 0;
+  const f=165*Math.pow(2,pos);
+  TN.o1.frequency.setTargetAtTime(f,t,.03); TN.o2.frequency.setTargetAtTime(f*1.5,t,.03); TN.g.gain.setTargetAtTime(tg,t,.06);
+  NZ.bp.frequency.setTargetAtTime(380+pos*1400,t,.04); NZ.g.gain.setTargetAtTime(ng,t,.05);
+}
+function muteBreath(){if(!AC||!TN) return; const t=AC.currentTime; TN.g.gain.setTargetAtTime(0,t,.05); NZ.g.gain.setTargetAtTime(0,t,.05);}
+function bell(freq,dur=1.4,amp=.2){
+  if(!AC) return; const t=AC.currentTime+.005;
+  [1,2.01,3.02].forEach((m,i)=>{const o=AC.createOscillator(), g=AC.createGain(), a=amp/(i*1.6+1);
+    o.type='sine'; o.frequency.value=freq*m;
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(a,t+.008); g.gain.exponentialRampToValueAtTime(.0001,t+dur/(i+1));
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.05);});
+}
+const tick=()=>bell(330,.14,.13);
+function chime(){bell(523,1.8,.18); setTimeout(()=>bell(659,1.8,.16),180); setTimeout(()=>bell(784,2.2,.16),360);}
+function pickVoice(){try{const vs=speechSynthesis.getVoices(); voice=vs.find(v=>/pt[-_]BR/i.test(v.lang))||vs.find(v=>/^pt/i.test(v.lang))||null;}catch(e){}}
+try{speechSynthesis.onvoiceschanged=pickVoice; pickVoice();}catch(e){}
+function say(txt){if(!prefs.voz||!txt) return; try{speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(txt); u.lang='pt-BR'; if(voice) u.voice=voice; u.rate=1; u.volume=Math.min(1,prefs.vol/100+.2); speechSynthesis.speak(u);}catch(e){}}
+function vib(k){if(!prefs.vib) return; try{navigator.vibrate&&navigator.vibrate(k==='in'||k==='in2'?35:k==='out'?[20,60,20]:[60]);}catch(e){}}
+
+/* ---------- Bolinha ---------- */
+const tube=$('tube'), ball=$('ball'), fill=$('fill'), ringBar=$('ringBar'), left=$('left');
+let trackH=200, curPos=0;
+function measure(){const h=tube.clientHeight; trackH=Math.max(60,h-BALL-PAD*2); placeBall(curPos);}
+function placeBall(pos){curPos=pos; const y=PAD+(1-pos)*trackH;
+  ball.style.transform='translate(-50%,'+y.toFixed(1)+'px)';
+  fill.style.transform='scaleY('+((trackH*pos+BALL/2+PAD)/(trackH+BALL+PAD*2)).toFixed(4)+')';}
+function ring(x){ringBar.style.strokeDashoffset=(RING*(1-Math.min(1,Math.max(0,x)))).toFixed(2);}
+function setPhaseColor(k){left.style.setProperty('--phase','var(--'+(COLOR[k]||'rest')+')');}
+(function ticks(){const sc=$('scale'); let h='';
+  for(let i=0;i<=10;i++){const lab=i===10?'cheio':i===0?'vazio':i===5?'meio':'';
+    h+='<div class="tick'+(i%5===0?' long':'')+'" style="top:calc('+(PAD+BALL/2)+'px + '+((10-i)/10)+' * (100% - '+(PAD*2+BALL)+'px))">'+(lab?'<span>'+lab+'</span>':'')+'</div>';}
+  sc.innerHTML=h;})();
+const ease=x=>.5-.5*Math.cos(Math.PI*x);
+
+/* ---------- Motor da sessão ---------- */
+const S={state:'idle',ph:[],i:0,t0:0,pauseAt:0,cycle:0,done:0,inCycle:0,raf:0,lastCount:'',lastStats:0,holds:[]};
+const phaseEl=$('phase'), hintEl=$('hint'), countEl=$('count'), chipsEl=$('chips'), curEl=$('cur');
+function renderChips(t,p,on){const a=chipList(t,p); chipsEl.innerHTML=a.map((c,i)=>'<li'+(i===on?' class="on"':'')+'>'+esc(c)+'</li>').join('');}
+function highlightChip(i){[...chipsEl.children].forEach((li,j)=>li.classList.toggle('on',j===i));}
+function enter(ph,catching){
+  setPhaseColor(ph.k); if(phaseEl.textContent!==ph.label) $('live').textContent=ph.label; phaseEl.textContent=ph.label; hintEl.textContent=ph.hint;
+  highlightChip(ph.chip); $('skipBtn').hidden=!ph.skip;
+  countEl.classList.remove('small'); S.lastCount='';
+  ringBar.style.opacity=ph.d<1.2?'0':'1';
+  if(catching) return;
+  if(!ph.quiet&&ph.k!=='prep'){ if(prefs.sino) bell(BELL[ph.k]||600); vib(ph.k); }
+  if(ph.tick&&(prefs.sino||prefs.som!=='nenhum')) tick();
+  if(ph.speak) say(ph.speak);
+}
+function startSession(){
+  const t=tech(); if(t.risco&&!ack[t.id]) return;
+  ensureAudio(); pickVoice();
+  if(AC&&TN){const n=AC.currentTime; [TN.g.gain,TN.o1.frequency,TN.o2.frequency,NZ.g.gain,NZ.bp.frequency].forEach(a=>a.cancelScheduledValues(n));}
+  const p=params(), sp=START[t.tipo];
+  S.ph=[P('prep',3,sp,sp,{hint:'acomode-se e solte os ombros',speak:'Prepare-se'})].concat(build(t,p));
+  S.i=0; S.cycle=0; S.done=0; S.inCycle=0; S.holds=[]; S.state='run'; S.t0=performance.now(); S.lastStats=0;
+  renderChips(t,p,-1); enter(S.ph[0],false); lock(); ui(); loop();
+}
+function loop(){cancelAnimationFrame(S.raf); S.raf=requestAnimationFrame(frame);}
+function frame(now){
+  if(S.state!=='run') return;
+  let ph=S.ph[S.i];
+  while(now-S.t0>=ph.d*1000){
+    S.t0+=ph.d*1000;
+    if(ph.k!=='prep'){S.done+=ph.d; S.inCycle+=ph.d;}
+    if(ph.skip) S.holds.push(ph.d);
+    S.i++;
+    if(S.i>=S.ph.length){
+      S.cycle++; S.inCycle=0;
+      const se=sess();
+      if((se.modo==='min'&&S.done>=se.v*60-.05)||(se.modo==='ciclos'&&S.cycle>=se.v)){finish(); return;}
+      const t=tech(), p=params(); S.ph=build(t,p); S.i=0; renderChips(t,p,-1);
+    }
+    ph=S.ph[S.i];
+    enter(ph,now-S.t0>300);
+    if(S.ph[S.i-1]&&S.ph[S.i-1].skip) hintEl.textContent='Você segurou '+mmss(S.holds[S.holds.length-1])+'. '+ph.hint.charAt(0).toUpperCase()+ph.hint.slice(1)+'.';
+  }
+  const x=Math.min(1,(now-S.t0)/(ph.d*1000));
+  const pos=ph.from+(ph.to-ph.from)*ease(x);
+  placeBall(pos); ring(x);
+  const c=ph.cA!=null ? ph.cA+'<small>/'+ph.cN+'</small>' : ph.skip ? Math.floor(ph.d*x)+'<small>s</small>' : String(Math.max(1,Math.ceil(ph.d*(1-x)-1e-6)));
+  if(c!==S.lastCount){countEl.innerHTML=c; S.lastCount=c;}
+  breathSound(pos,ph,x);
+  if(now-S.lastStats>250){S.lastStats=now; stats(ph,x);}
+  S.raf=requestAnimationFrame(frame);
+}
+function pause(){if(S.state!=='run') return; S.state='pause'; S.pauseAt=performance.now(); cancelAnimationFrame(S.raf); muteBreath(); try{speechSynthesis.cancel()}catch(e){} unlock(); hintEl.textContent='Pausado. Toque em Continuar.'; ui();}
+function resume(){if(S.state!=='pause') return; ensureAudio(); S.t0+=performance.now()-S.pauseAt; S.state='run'; hintEl.textContent=S.ph[S.i].hint; lock(); ui(); loop();}
+function stop(){cancelAnimationFrame(S.raf); S.state='idle'; muteBreath(); try{speechSynthesis.cancel()}catch(e){} unlock(); $('skipBtn').hidden=true; idleStage(); ui();}
+function finish(){
+  S.state='end'; cancelAnimationFrame(S.raf); muteBreath(); unlock(); $('skipBtn').hidden=true;
+  const t=tech(); placeBall(START[t.tipo]); ring(1); setPhaseColor('in'); highlightChip(-1);
+  phaseEl.textContent='Concluído';
+  hintEl.textContent=S.cycle+(isRound(t)?(S.cycle===1?' rodada':' rodadas'):(S.cycle===1?' ciclo':' ciclos'))+' em '+mmss(S.done)+'.'+(S.holds.length?' Retenções: '+S.holds.map(mmss).join(' · ')+'.':'')+' Respire normalmente por um momento.';
+  countEl.classList.add('small'); countEl.textContent='Bom trabalho';
+  if(prefs.sino||prefs.som!=='nenhum') chime(); say('Sessão concluída');
+  stats(null,0); ui();
+}
+function skipPhase(){if(S.state!=='run') return; const ph=S.ph[S.i]; if(!ph.skip) return; ph.d=Math.max(.1,(performance.now()-S.t0)/1000);}
+function stats(ph,x){
+  const t=tech(), se=sess(), ri=rateInfo(t,params());
+  const el=S.done+(ph&&ph.k!=='prep'?x*ph.d:0);
+  $('stCycleLab').textContent=isRound(t)?'Rodada':'Ciclo';
+  $('stTime').textContent=mmss(el);
+  $('stRateLab').textContent=ri.lab; $('stRate').textContent=ri.val;
+  if(S.state==='idle'){
+    $('stCycle').textContent='—'; $('stTime').textContent='0:00';
+    const cs0=cycleSec(t,params());
+    $('stLeft').textContent=se.modo==='min'?mmss(Math.max(1,Math.ceil((se.v*60-.05)/cs0))*cs0):se.modo==='ciclos'?mmss(se.v*cs0):'livre';
+    return;
+  }
+  const n=S.state==='end'?S.cycle:S.cycle+1;
+  $('stCycle').textContent=se.modo==='ciclos'?Math.min(n,se.v)+'/'+se.v:String(n);
+  let left='livre';
+  const cs=S.ph.filter(q=>q.k!=='prep').reduce((s,q)=>s+q.d,0), inNow=S.inCycle+(ph&&ph.k!=='prep'?x*ph.d:0);
+  if(se.modo==='min'){const end0=S.done-S.inCycle+cs, extra=Math.max(0,Math.ceil((se.v*60-.05-end0)/cs)); left=mmss(Math.max(0,end0+extra*cs-el));}
+  else if(se.modo==='ciclos') left=mmss(Math.max(0,(se.v-S.cycle)*cs-inNow));
+  if(S.state==='end') left='0:00';
+  $('stLeft').textContent=left;
+}
+function idleStage(){
+  const t=tech(), p=params();
+  setPhaseColor('rest'); placeBall(START[t.tipo]); ring(0);
+  phaseEl.textContent='Pronto'; hintEl.textContent=t.sub;
+  countEl.classList.add('small'); countEl.textContent=pattern(t,p);
+  curEl.textContent=prefs.model||t.nome;
+  renderChips(t,p,-1); stats(null,0);
+}
+
+/* ---------- Tela cheia acesa ---------- */
+let wl=null;
+async function lock(){try{if('wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen'); wl.addEventListener&&wl.addEventListener('release',()=>{wl=null;});}}catch(e){wl=null;}}
+function unlock(){try{wl&&wl.release();}catch(e){} wl=null;}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.state==='run') pause();});
+
+/* ---------- Interface ---------- */
+function ui(){
+  const t=tech(), risky=!!t.risco&&!ack[t.id];
+  const sb=$('startBtn');
+  sb.textContent=S.state==='run'?'Pausar':S.state==='pause'?'Continuar':S.state==='end'?'Começar de novo':'Começar';
+  sb.disabled=(S.state==='idle'||S.state==='end')&&risky;
+  $('stopBtn').disabled=!(S.state==='run'||S.state==='pause');
+  $('risk').hidden=!t.risco;
+  if(t.risco){$('riskText').textContent=t.cuidados[0]; $('riskAck').checked=!!ack[t.id];}
+  document.body.dataset.state=S.state;
+  $('temposLede').textContent=(isRound(t)?'Ajuste a rodada.':'Em segundos. Zero tira a pausa.')+(S.state==='run'||S.state==='pause'?' As mudanças valem a partir do próximo ciclo.':'');
+}
+function renderFilters(){
+  const f=[['todas','Todas']].concat(Object.entries(OBJ));
+  $('filters').innerHTML=f.map(([k,l])=>'<button type="button" class="filter" data-f="'+k+'" aria-pressed="'+(prefs.filtro===k)+'">'+l+'</button>').join('');
+}
+function renderList(){
+  const items=TECH.filter(t=>prefs.filtro==='todas'||t.obj.includes(prefs.filtro));
+  $('list').innerHTML=items.map(t=>{const e=EVID[t.ev];
+    return '<button type="button" class="tech" data-id="'+t.id+'" aria-pressed="'+(t.id===prefs.tech)+'">'+
+      '<span class="t-name">'+esc(t.nome)+'</span><span class="t-pat">'+esc(pattern(t,params(t)))+'</span>'+
+      '<span class="t-sub">'+esc(t.sub)+'</span>'+
+      '<span class="t-meta">'+t.obj.map(o=>'<span class="tag">'+OBJ[o]+'</span>').join('')+
+      '<span class="ev ev-'+(t.risco?'b':e[1])+'">'+e[0]+'</span>'+(t.risco?'<span class="tag risk-tag">Atenção</span>':'')+'</span></button>';}).join('');
+}
+function renderRows(){
+  const t=tech(), p=params();
+  $('rows').innerHTML=KEYS[t.tipo].map(k=>{const d=PARAM[k];
+    return '<div class="row"><span class="lab"><span class="dot" style="--c:var(--'+d.c+')"></span>'+d.l+'<span class="unit">'+(d.u||'em segundos')+'</span></span>'+
+      '<div class="stepper"><button type="button" data-k="'+k+'" data-dir="-1" aria-label="Diminuir '+d.l+'"'+(p[k]<=d.min?' disabled':'')+'>−</button>'+
+      '<output id="v-'+k+'">'+fmt(p[k])+'</output>'+
+      '<button type="button" data-k="'+k+'" data-dir="1" aria-label="Aumentar '+d.l+'"'+(p[k]>=d.max?' disabled':'')+'>+</button></div></div>';}).join('');
+  $('sum').textContent=rateInfo(t,p).txt;
+}
+function renderSess(){
+  const t=tech(), se=sess();
+  $('modoMin').checked=se.modo==='min'; $('modoCic').checked=se.modo==='ciclos'; $('modoLivre').checked=se.modo==='livre';
+  $('modoCicLab').textContent=isRound(t)?'Rodadas':'Ciclos';
+  $('sessRow').hidden=se.modo==='livre';
+  $('sessLab').innerHTML='Duração<span class="unit">'+(se.modo==='min'?'minutos':isRound(t)?'rodadas':'ciclos')+'</span>';
+  $('sessVal').textContent=se.v;
+  const cs=cycleSec(t,params());
+  const nc=Math.max(1,Math.ceil((se.v*60-.05)/cs));
+  $('sessSum').textContent=se.modo==='min'?'≈ '+nc+(isRound(t)?(nc===1?' rodada':' rodadas'):(nc===1?' ciclo':' ciclos'))+' ('+mmss(nc*cs)+'). A sessão termina ao fim do ciclo em curso.':se.modo==='ciclos'?'≈ '+mmss(se.v*cs)+' de prática.':'Sem limite. Toque em Encerrar quando quiser parar.';
+}
+function renderSom(){
+  $('somTom').checked=prefs.som==='tom'; $('somSopro').checked=prefs.som==='sopro'; $('somNada').checked=prefs.som==='nenhum';
+  $('swSino').checked=!!prefs.sino; $('swVoz').checked=!!prefs.voz; $('swVib').checked=!!prefs.vib; $('vol').value=prefs.vol;
+}
+let pendingDel=null;
+function renderModels(){
+  const m=prefs.models;
+  $('modelsEmpty').hidden=m.length>0;
+  $('models').innerHTML=m.map(x=>{const t=byId(x.tech); if(!t) return '';
+    const p=Object.assign({},t.p,x.p);
+    return '<li><div><span class="m-name">'+esc(x.nome)+'</span><span class="m-pat">'+esc(t.nome)+' · '+esc(pattern(t,p))+'</span></div>'+
+      '<div class="m-act"><button type="button" class="small-btn" data-use="'+x.id+'">Usar</button>'+
+      '<button type="button" class="small-btn danger" data-del="'+x.id+'">'+(pendingDel===x.id?'Confirmar':'Excluir')+'</button></div></li>';}).join('');
+}
+function renderSobre(){
+  const t=tech(), e=EVID[t.ev];
+  $('sobreTitle').textContent='Sobre: '+t.nome;
+  let h='<div class="about-head">'+t.obj.map(o=>'<span class="tag">'+OBJ[o]+'</span>').join('')+'<span class="ev ev-'+(t.risco?'b':e[1])+'">'+e[0]+'</span>'+(t.risco?'<span class="tag risk-tag">Atenção</span>':'')+'</div>';
+  h+='<div class="blk"><h3>Como fazer</h3><ol>'+t.como.map(c=>'<li>'+esc(c)+'</li>').join('')+'</ol></div>';
+  h+='<div class="blk"><h3>O que diz a pesquisa</h3><p>'+esc(t.pesquisa)+'</p></div>';
+  if(t.cuidados.length) h+='<div class="blk warn"><h3>Cuidados</h3><ul>'+t.cuidados.map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul></div>';
+  h+='<div class="blk"><h3>Fontes</h3><ul>'+t.fontes.map(k=>'<li><a href="'+SRC[k][1]+'" target="_blank" rel="noopener">'+esc(SRC[k][0])+'</a></li>').join('')+'</ul></div>';
+  $('sobre').innerHTML=h;
+}
+function renderAll(){renderFilters(); renderList(); renderRows(); renderSess(); renderSom(); renderModels(); renderSobre(); if(S.state==='idle'||S.state==='end'){S.state='idle'; idleStage();} else {curEl.textContent=prefs.model||tech().nome;} ui();}
+
+/* ---------- Eventos ---------- */
+$('startBtn').addEventListener('click',()=>{if(S.state==='run') pause(); else if(S.state==='pause') resume(); else startSession();});
+$('stopBtn').addEventListener('click',stop);
+$('skipBtn').addEventListener('click',skipPhase);
+$('techBtn').addEventListener('click',()=>{const r=matchMedia('(prefers-reduced-motion: reduce)').matches; $('secTec').scrollIntoView({behavior:r?'auto':'smooth',block:'start'});});
+$('riskAck').addEventListener('change',e=>{ack[tech().id]=e.target.checked; ui();});
+$('filters').addEventListener('click',e=>{const b=e.target.closest('[data-f]'); if(!b) return; prefs.filtro=b.dataset.f; save(); renderFilters(); renderList();});
+$('list').addEventListener('click',e=>{const b=e.target.closest('[data-id]'); if(!b) return;
+  if(b.dataset.id===prefs.tech&&!prefs.model) return;
+  if(S.state==='run'||S.state==='pause') stop();
+  prefs.tech=b.dataset.id; prefs.model=null; save(); renderAll();
+  const r=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(matchMedia('(max-width: 899px)').matches) left.scrollIntoView({behavior:r?'auto':'smooth',block:'start'});
+});
+$('rows').addEventListener('click',e=>{const b=e.target.closest('[data-k]'); if(!b) return;
+  const t=tech(), k=b.dataset.k, p=params();
+  p[k]=clampP(k,p[k]+Number(b.dataset.dir)*PARAM[k].step);
+  prefs.params[t.id]=p; prefs.model=null; save();
+  renderRows(); renderList(); renderSess();
+  if(S.state==='idle'||S.state==='end'){S.state='idle'; idleStage(); ui();} else curEl.textContent=t.nome;
+});
+$('resetParams').addEventListener('click',()=>{const t=tech(); delete prefs.params[t.id]; prefs.model=null; save(); renderRows(); renderList(); renderSess(); if(S.state==='idle'||S.state==='end'){S.state='idle'; idleStage(); ui();} else curEl.textContent=t.nome;});
+document.querySelectorAll('input[name="modo"]').forEach(r=>r.addEventListener('change',()=>{
+  const t=tech(), m=r.value, cur=sess();
+  const v=m===t.s.modo?t.s.v:(m==='min'?5:m==='ciclos'?(isRound(t)?3:10):cur.v);
+  prefs.sessions[t.id]={modo:m,v}; prefs.model=null; save(); renderSess(); curEl.textContent=t.nome; if(S.state==='idle') stats(null,0);}));
+document.querySelector('#sessRow .stepper').addEventListener('click',e=>{const b=e.target.closest('[data-sess]'); if(!b) return;
+  const t=tech(), se=sess(), max=se.modo==='min'?60:200;
+  se.v=Math.min(max,Math.max(1,se.v+Number(b.dataset.sess)));
+  prefs.sessions[t.id]=se; prefs.model=null; save(); renderSess(); curEl.textContent=t.nome; if(S.state==='idle') stats(null,0);});
+document.querySelectorAll('input[name="som"]').forEach(r=>r.addEventListener('change',()=>{prefs.som=r.value; save(); if(prefs.som==='nenhum') muteBreath();}));
+$('swSino').addEventListener('change',e=>{prefs.sino=e.target.checked; save();});
+$('swVoz').addEventListener('change',e=>{prefs.voz=e.target.checked; save(); if(prefs.voz) pickVoice();});
+$('swVib').addEventListener('change',e=>{prefs.vib=e.target.checked; save();});
+$('vol').addEventListener('input',e=>{prefs.vol=Number(e.target.value); save(); if(master&&AC) master.gain.setTargetAtTime(prefs.vol/100,AC.currentTime,.03);});
+$('testBtn').addEventListener('click',()=>{
+  ensureAudio(); if(!AC){$('testBtn').textContent='Som indisponível neste aparelho'; return;}
+  if(S.state==='run') return;
+  const t=AC.currentTime;
+  if(prefs.som==='tom'){TN.g.gain.cancelScheduledValues(t); TN.o1.frequency.cancelScheduledValues(t); TN.o2.frequency.cancelScheduledValues(t);
+    TN.o1.frequency.setValueAtTime(165,t); TN.o1.frequency.linearRampToValueAtTime(330,t+1.6); TN.o1.frequency.linearRampToValueAtTime(165,t+3.2);
+    TN.o2.frequency.setValueAtTime(247.5,t); TN.o2.frequency.linearRampToValueAtTime(495,t+1.6); TN.o2.frequency.linearRampToValueAtTime(247.5,t+3.2);
+    TN.g.gain.setValueAtTime(0,t); TN.g.gain.linearRampToValueAtTime(.15,t+.4); TN.g.gain.setValueAtTime(.15,t+2.8); TN.g.gain.linearRampToValueAtTime(0,t+3.2);}
+  else if(prefs.som==='sopro'){NZ.g.gain.cancelScheduledValues(t); NZ.bp.frequency.cancelScheduledValues(t);
+    NZ.bp.frequency.setValueAtTime(380,t); NZ.bp.frequency.linearRampToValueAtTime(1780,t+1.6); NZ.bp.frequency.linearRampToValueAtTime(380,t+3.2);
+    NZ.g.gain.setValueAtTime(0,t); NZ.g.gain.linearRampToValueAtTime(.3,t+.5); NZ.g.gain.setValueAtTime(.3,t+2.7); NZ.g.gain.linearRampToValueAtTime(0,t+3.2);}
+  if(prefs.sino) bell(784);
+  say('Inspire'); vib('in');
+});
+$('saveModel').addEventListener('click',()=>{
+  const t=tech(), p=params(), nm=$('modelName').value.trim()||(t.nome+' '+pattern(t,p));
+  const nome=nm.slice(0,40), ex=prefs.models.find(x=>x.nome.toLowerCase()===nome.toLowerCase()), rec={id:ex?ex.id:Date.now().toString(36),nome,tech:t.id,p,s:sess()};
+  if(ex) prefs.models[prefs.models.indexOf(ex)]=rec; else prefs.models.push(rec);
+  prefs.model=nome; save(); $('modelName').value=''; pendingDel=null; renderModels(); curEl.textContent=prefs.model;
+  $('saveMsg').textContent='Modelo “'+nome+'” '+(ex?'atualizado':'salvo')+'.';
+});
+$('models').addEventListener('click',e=>{
+  const u=e.target.closest('[data-use]'), d=e.target.closest('[data-del]');
+  if(u){const m=prefs.models.find(x=>x.id===u.dataset.use); if(!m||!byId(m.tech)) return;
+    if(S.state==='run'||S.state==='pause') stop();
+    prefs.tech=m.tech; prefs.params[m.tech]={...m.p}; prefs.sessions[m.tech]={...m.s}; prefs.model=m.nome; pendingDel=null; save(); renderAll();
+    $('saveMsg').textContent='Usando “'+m.nome+'”. Os tempos de '+byId(m.tech).nome+' foram ajustados para este modelo.';
+    if(matchMedia('(max-width: 899px)').matches) left.scrollIntoView({block:'start'});}
+  if(d){const id=d.dataset.del;
+    if(pendingDel===id){prefs.models=prefs.models.filter(x=>x.id!==id); pendingDel=null; save(); $('saveMsg').textContent='Modelo excluído.';}
+    else pendingDel=id;
+    renderModels();}
+});
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.target.closest('input,button,textarea')){e.preventDefault(); $('startBtn').click();}});
+
+if('ResizeObserver' in window) new ResizeObserver(measure).observe(tube); else addEventListener('resize',measure);
+measure(); renderAll();
+
+/* ---------- App instalável ---------- */
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')) addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+let deferredInstall=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e; $('install').classList.add('show');});
+$('installBtn').addEventListener('click',async()=>{if(!deferredInstall) return; deferredInstall.prompt(); try{await deferredInstall.userChoice;}catch(e){} deferredInstall=null; $('install').classList.remove('show');});
+addEventListener('appinstalled',()=>{deferredInstall=null; $('install').classList.remove('show');});
+})();
+</script>
+
+</body></html>
